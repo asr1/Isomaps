@@ -7,7 +7,7 @@
 #include <gdiplus.h>
 #pragma comment (lib, "Gdiplus.lib")
 #include "IsoMaps.h"
-#include "Line.h";
+#include "Line.h"
 
 #define MAX_LOADSTRING 100
 
@@ -19,8 +19,21 @@ RECT rect;										// pointer to the size of the window
 HWND hWnd;										// current window
 int resizeOffset = 100;							//Changed when zooming
 
-//Debug
+struct node {
+	Line data;
+	node * next;
+};
 
+node * head;
+
+void addToList(node * head, Line data)
+{
+	node * temp = head;
+	while (temp && temp->next) {
+		temp = temp->next;
+	}
+	temp->data = data;
+}
 
 void changeOffset(int offset)
 {
@@ -36,19 +49,30 @@ VOID onPaint(HDC hdc)
 	GetWindowRect(hWnd, &rect);
 	int offset = resizeOffset;
 
-
-
 	Gdiplus::Graphics graphics(hdc);
-	Gdiplus::Pen pen(Gdiplus::Color(0, 0, 0));
-	
-	for (int i = 0; i * offset < rect.bottom; i++)
+
+	//Paint all lines
+	node * temp = head;
+	while (temp && temp->next)
 	{
-		graphics.DrawLine(&pen, 0, i * offset, rect.right, i * offset);
+		Line l = (Line)temp->data;
+		Gdiplus::Pen pen(l.color, l.thickness);
+		graphics.DrawLine(&pen, l.x, l.y, l.x + l.width, l.y + l.height);
 	}
-	for (int i = 0; i * offset < rect.right; i++)
-	{
-		graphics.DrawLine(&pen, i * offset, 0, i * offset, rect.right);
-	}
+
+
+
+	//
+	//
+	//
+	//for (int i = 0; i * offset < rect.bottom; i++)
+	//{
+	//	graphics.DrawLine(&pen, 0, i * offset, rect.right, i * offset);
+	//}
+	//for (int i = 0; i * offset < rect.right; i++)
+	//{
+	//	graphics.DrawLine(&pen, i * offset, 0, i * offset, rect.right);
+	//}
 	
 
 
@@ -74,6 +98,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	ULONG_PTR gdiplusToken;
 
 	GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+	head = new node;
+
 
     // Initialize global strings
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -89,6 +115,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_ISOMAPS));
 
     MSG msg;
+
+	Line line = Line(10, 10, 100, 100);
+	addToList(head, line);
+
 
     // Main message loop:
     while (GetMessage(&msg, nullptr, 0, 0))
