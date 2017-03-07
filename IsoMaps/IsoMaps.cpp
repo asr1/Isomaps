@@ -8,12 +8,14 @@
 #pragma comment (lib, "Gdiplus.lib")
 #include "IsoMaps.h"
 #include <list>
+#include <string>
 #include <ctime>
 #include "Line.h"
 
 #define MAX_LOADSTRING 100
 #define MIN_ZOOM 50
 #define MAX_ZOOM 500
+#define CLOSE_ENOUGH_OFFSET 50
 
 // Global Variables:
 HINSTANCE hInst;                                // current instance
@@ -22,74 +24,10 @@ WCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
 RECT rect;										// pointer to the size of the window
 HWND hWnd;										// current window
 int resizeOffset = 100;							//Changed when zooming
-bool outdated = false;
-
-
-std::list<Line> lines;
-
-void changeOffset(int offset)
-{
-	resizeOffset += offset;
-	if (resizeOffset < MIN_ZOOM)
-	{
-		resizeOffset = MIN_ZOOM;
-	}
-	if (resizeOffset > MAX_ZOOM)
-	{
-		resizeOffset = MAX_ZOOM;
-	}
-
-	outdated = true;
-}
-
-void addAllLines()
-{
-
-	for (int i = 0; i * resizeOffset < rect.bottom; i++)
-	{
-		for (int j = 0; j * resizeOffset < rect.right; j++)
-		{
-			Line line = Line(10 + j * resizeOffset, i * resizeOffset, 0, resizeOffset, DEFAULT_THICKNESS, VERT);
-			lines.push_back(line);
-		}
-	}
-	
-	for (int i = 0; i * resizeOffset < rect.bottom; i++)
-	{
-		for (int j = 0; j * resizeOffset < rect.right; j++)
-		{
-			Line line = Line(j * resizeOffset, 10 + i * resizeOffset, resizeOffset, 0, DEFAULT_THICKNESS, HORZ);
-			lines.push_back(line);
-		}
-	}
-	InvalidateRect(hWnd, NULL, true);
-}
-
-Gdiplus::Color getRandomColor()
-{
-	return Gdiplus::Color(rand() % 255 + 1, rand() % 255 + 1, rand() % 255 + 1);
-}
-
-VOID onPaint(HDC hdc)
-{
-	GetWindowRect(hWnd, &rect);
-	Gdiplus::Graphics graphics(hdc);
-
-	if (outdated)
-	{
-		lines.clear();
-		addAllLines();//Refresh zoom size
-		outdated = false;
-	}
-
-	//Paint all lines
-	for (std::list<Line>::iterator it = lines.begin(); it != lines.end(); it++)
-	{
-		Line l = *it;
-		Gdiplus::Pen pen(l.color, l.thickness);
-		graphics.DrawLine(&pen, l.x, l.y, l.x + l.width, l.y + l.height);
-	}
-}
+bool outdated = false;							//Keep zoom up to date
+std::list<Line> lines;	
+HWND hWndExample;								//Global text handler
+bool lineIntersect(POINT p);					//Checks to see if a Line is clicked
 
 
 // Forward declarations of functions included in this code module:
@@ -97,6 +35,12 @@ ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+Gdiplus::Color getColorAtLocation(POINT p);
+void changeOffset(int offset);
+void addAllLines();
+Gdiplus::Color getRandomColor();
+VOID onPaint(HDC hdc);
+bool areCloseEnough(int a, int b);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -209,6 +153,11 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
       return FALSE;
    }
 
+   //AddText
+   hWndExample = CreateWindow(L"STATIC", L"Text Goes Here", WS_VISIBLE | WS_CHILD | SS_LEFT, 10, 10, 100, 100, hWnd, NULL, hInstance, NULL);
+
+
+
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
 
@@ -279,6 +228,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		InvalidateRect(hWnd, NULL, true);
 		break;
+	case WM_LBUTTONUP:
+		// Get the current cursor position
+		POINT p;
+		
+		if (GetCursorPos(&p))
+		{
+			getColorAtLocation(p);
+		}
+			
+		
+		break;
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
@@ -303,4 +263,157 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     }
     return (INT_PTR)FALSE;
+}
+
+void changeOffset(int offset)
+{
+	resizeOffset += offset;
+	if (resizeOffset < MIN_ZOOM)
+	{
+		resizeOffset = MIN_ZOOM;
+	}
+	if (resizeOffset > MAX_ZOOM)
+	{
+		resizeOffset = MAX_ZOOM;
+	}
+
+	outdated = true;
+}
+
+void addAllLines()
+{
+
+	for (int i = 0; i * resizeOffset < rect.bottom; i++)
+	{
+		for (int j = 0; j * resizeOffset < rect.right; j++)
+		{
+			Line line = Line(10 + j * resizeOffset, i * resizeOffset, 0, resizeOffset, DEFAULT_THICKNESS, VERT);
+			line.multx = i;
+			line.multy = j;
+			lines.push_back(line);
+		}
+	}
+
+	for (int i = 0; i * resizeOffset < rect.bottom; i++)
+	{
+		for (int j = 0; j * resizeOffset < rect.right; j++)
+		{
+			Line line = Line(j * resizeOffset, 10 + i * resizeOffset, resizeOffset, 0, DEFAULT_THICKNESS, HORZ);
+			line.multx = i;
+			line.multy = j;
+			lines.push_back(line);
+		}
+	}
+	InvalidateRect(hWnd, NULL, true);
+}
+
+Gdiplus::Color getRandomColor()
+{
+	return Gdiplus::Color(rand() % 255 + 1, rand() % 255 + 1, rand() % 255 + 1);
+}
+
+VOID onPaint(HDC hdc)
+{
+	GetWindowRect(hWnd, &rect);
+	Gdiplus::Graphics graphics(hdc);
+
+	if (outdated)
+	{
+		lines.clear();
+		addAllLines();//Refresh zoom size
+		outdated = false;
+	}
+
+	//Paint all lines
+	for (std::list<Line>::iterator it = lines.begin(); it != lines.end(); it++)
+	{
+		Line l = *it;
+		Gdiplus::Pen pen(l.color, l.thickness);
+		graphics.DrawLine(&pen, l.x, l.y, l.x + l.width, l.y + l.height);
+	}
+}
+
+
+
+Gdiplus::Color getColorAtLocation(POINT p)
+{
+	GetUpdateRect(hWnd, &rect, true);
+	ScreenToClient(hWnd, &p);
+
+
+
+
+
+	COLORREF color;
+	HDC hDC;
+	BOOL b;
+
+	// Get the device context for the screen
+	hDC = GetDC(NULL);
+
+	// Retrieve the color at that position
+	color = GetPixel(hDC, p.x, p.y);
+
+
+	// Release the device context again
+	ReleaseDC(GetDesktopWindow(), hDC);
+
+	char buffer[255];
+
+	wchar_t wtext[255];
+	//sprintf(buffer, "%i %i %i", GetRValue(color), GetGValue(color), GetBValue(color));
+	//sprintf(buffer, "%d %d", p.x - rect.left, p.y - rect.top);
+	if (lineIntersect(p))
+	{
+		sprintf(buffer, "True");
+	}
+	else
+	{
+		sprintf(buffer, "False");
+	}
+
+
+	//DEBUG
+	char temp = ' ';
+
+	if (areCloseEnough(p.x, p.y))
+	{
+		temp = 't';
+	}
+	else
+	{
+		temp = 'f';
+	}
+
+	sprintf(buffer, "%d %d %c", p.x, p.y, temp);
+	
+	//DEBUG
+
+
+	mbstowcs(wtext, buffer, strlen(buffer) + 1);
+	SetWindowText(hWndExample, wtext);
+	return Gdiplus::Color(GetRValue(color), GetGValue(color), GetBValue(color));
+}
+
+bool lineIntersect(POINT p)
+{
+	for (std::list<Line>::iterator it = lines.begin(); it != lines.end(); it++)
+	{	
+		if (areCloseEnough(p.x, (*it).x) && p.y >= (*it).y && p.y <= (*it).y + (*it).height ||
+			areCloseEnough(p.y, (*it).y) && p.x >= (*it).x && p.x <= (*it).x + (*it).width)
+		{
+			return true;
+		}
+		//
+		//if (p.x == (*it).x && p.y >= (*it).y && p.y <= (*it).y + (*it).height ||
+		//	p.y == (*it).y && p.x >= (*it).x && p.x <= (*it).x + (*it).width) {
+		//	return true;
+		//}
+	}
+	return false;
+}
+
+bool areCloseEnough(int a, int b)
+{
+	return abs(a - b) < CLOSE_ENOUGH_OFFSET;
 }

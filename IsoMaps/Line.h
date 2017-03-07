@@ -2,7 +2,7 @@
 #include <gdiplus.h>
 #pragma comment (lib, "Gdiplus.lib")
 
-#define DEFAULT_THICKNESS 1
+#define DEFAULT_THICKNESS 8
 
 enum LINE_TYPE {
 	NONE,

@@ -1,4 +1,13 @@
 ﻿  IsoMaps.cpp
-c:\users\alex\documents\programming\isomaps\isomaps\isomaps.cpp(89): warning C4244: 'argument': conversion from 'int' to 'Gdiplus::REAL', possible loss of data
+c:\users\alex\documents\programming\isomaps\isomaps\isomaps.cpp(331): warning C4244: 'argument': conversion from 'int' to 'Gdiplus::REAL', possible loss of data
+c:\users\alex\documents\programming\isomaps\isomaps\isomaps.cpp(368): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\ucrt\stdio.h(1769): note: see declaration of 'sprintf'
+c:\users\alex\documents\programming\isomaps\isomaps\isomaps.cpp(372): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\ucrt\stdio.h(1769): note: see declaration of 'sprintf'
+c:\users\alex\documents\programming\isomaps\isomaps\isomaps.cpp(388): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\ucrt\stdio.h(1769): note: see declaration of 'sprintf'
+c:\users\alex\documents\programming\isomaps\isomaps\isomaps.cpp(393): warning C4996: 'mbstowcs': This function or variable may be unsafe. Consider using mbstowcs_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\ucrt\stdlib.h(924): note: see declaration of 'mbstowcs'
+c:\users\alex\documents\programming\isomaps\isomaps\isomaps.cpp(349): warning C4101: 'b': unreferenced local variable
   IsoMaps.vcxproj -> C:\Users\Alex\Documents\Programming\IsoMaps\Debug\IsoMaps.exe
   IsoMaps.vcxproj -> C:\Users\Alex\Documents\Programming\IsoMaps\Debug\IsoMaps.pdb (Partial PDB)
