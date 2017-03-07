@@ -27,4 +27,5 @@ void Line::init(int _x, int _y, int _width, int _height, Gdiplus::Color _color, 
 	height = _height;
 	thickness = _thickness;
 	color = _color;
+	isSelected = false;
 }

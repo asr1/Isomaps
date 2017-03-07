@@ -15,7 +15,7 @@
 #define MAX_LOADSTRING 100
 #define MIN_ZOOM 50
 #define MAX_ZOOM 500
-#define CLOSE_ENOUGH_OFFSET 50
+#define CLOSE_ENOUGH_OFFSET 10
 
 // Global Variables:
 HINSTANCE hInst;                                // current instance
@@ -28,6 +28,7 @@ bool outdated = false;							//Keep zoom up to date
 std::list<Line> lines;	
 HWND hWndExample;								//Global text handler
 bool lineIntersect(POINT p);					//Checks to see if a Line is clicked
+Line * selected;
 
 
 // Forward declarations of functions included in this code module:
@@ -329,7 +330,14 @@ VOID onPaint(HDC hdc)
 	{
 		Line l = *it;
 		Gdiplus::Pen pen(l.color, l.thickness);
-		graphics.DrawLine(&pen, l.x, l.y, l.x + l.width, l.y + l.height);
+		Gdiplus::Pen selPen(Gdiplus::Color(0,0,255), l.thickness);
+		if (l.isSelected) {
+			graphics.DrawLine(&selPen, l.x, l.y, l.x + l.width, l.y + l.height);
+		}
+		else
+		{
+			graphics.DrawLine(&pen, l.x, l.y, l.x + l.width, l.y + l.height);
+		}
 	}
 }
 
@@ -339,10 +347,6 @@ Gdiplus::Color getColorAtLocation(POINT p)
 {
 	GetUpdateRect(hWnd, &rect, true);
 	ScreenToClient(hWnd, &p);
-
-
-
-
 
 	COLORREF color;
 	HDC hDC;
@@ -376,7 +380,7 @@ Gdiplus::Color getColorAtLocation(POINT p)
 	//DEBUG
 	char temp = ' ';
 
-	if (areCloseEnough(p.x, p.y))
+	if (lineIntersect(p))
 	{
 		temp = 't';
 	}
@@ -402,13 +406,11 @@ bool lineIntersect(POINT p)
 		if (areCloseEnough(p.x, (*it).x) && p.y >= (*it).y && p.y <= (*it).y + (*it).height ||
 			areCloseEnough(p.y, (*it).y) && p.x >= (*it).x && p.x <= (*it).x + (*it).width)
 		{
+			selected = &*it;
+			selected->isSelected = true;
 			return true;
 		}
-		//
-		//if (p.x == (*it).x && p.y >= (*it).y && p.y <= (*it).y + (*it).height ||
-		//	p.y == (*it).y && p.x >= (*it).x && p.x <= (*it).x + (*it).width) {
-		//	return true;
-		//}
+
 	}
 	return false;
 }
