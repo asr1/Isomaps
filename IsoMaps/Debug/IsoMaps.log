@@ -1,6 +1,6 @@
 ﻿  IsoMaps.cpp
-c:\users\alex\documents\programming\isomaps\isomaps\isomaps.cpp(114): warning C4305: 'argument': truncation from 'int' to 'BYTE'
-c:\users\alex\documents\programming\isomaps\isomaps\isomaps.cpp(114): warning C4309: 'argument': truncation of constant value
-c:\users\alex\documents\programming\isomaps\isomaps\isomaps.cpp(134): warning C4244: 'argument': conversion from 'int' to 'Gdiplus::REAL', possible loss of data
+c:\users\alex\documents\programming\isomaps\isomaps\isomaps.cpp(68): warning C4305: 'argument': truncation from 'int' to 'BYTE'
+c:\users\alex\documents\programming\isomaps\isomaps\isomaps.cpp(68): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\programming\isomaps\isomaps\isomaps.cpp(75): warning C4244: 'argument': conversion from 'int' to 'Gdiplus::REAL', possible loss of data
   IsoMaps.vcxproj -> C:\Users\Alex\Documents\Programming\IsoMaps\Debug\IsoMaps.exe
   IsoMaps.vcxproj -> C:\Users\Alex\Documents\Programming\IsoMaps\Debug\IsoMaps.pdb (Partial PDB)

@@ -7,6 +7,7 @@
 #include <gdiplus.h>
 #pragma comment (lib, "Gdiplus.lib")
 #include "IsoMaps.h"
+#include <list>
 #include <ctime>
 #include "Line.h"
 
@@ -20,34 +21,7 @@ RECT rect;										// pointer to the size of the window
 HWND hWnd;										// current window
 int resizeOffset = 100;							//Changed when zooming
 
-struct node {
-	Line data;
-	node * next;
-	node(const Line & dat, node * n = 0) : data(dat), next(n){}
-	node(node * n = 0) : next(n) {}
-};
-
-node * head;
-node * vertHead;
-node * horzHead;
-
-void insertAtEnd(node* &first, Line data) {
-	// create node
-	node* temp = new node;
-	temp->data = data;
-	temp->next = NULL;
-
-	if (!first) { // empty list becomes the new node
-		first = temp;
-		return;
-	}
-	else { // find last and link the new node
-		node* last = first;
-		while (last->next) last = last->next;
-		last->next = temp;
-	}
-	InvalidateRect(hWnd, NULL, true);
-}
+std::list<Line> lines;
 
 void changeOffset(int offset)
 {
@@ -61,38 +35,22 @@ void changeOffset(int offset)
 void addAllLines()
 {
 
-	for (int i = 0; i  * 10 < rect.bottom; i++)
+	for (int i = 0; i * resizeOffset < rect.bottom; i++)
 	{
-		for (int j = 0; j * 10 < rect.right; j++) 
+		for (int j = 0; j * resizeOffset < rect.right; j++)
 		{
-			Line line = Line(10, 0, 0, 0, DEFAULT_THICKNESS, HORZ);
-			line.multx = j;
-			line.multy = i;
-			insertAtEnd(head, line);
+			Line line = Line(10 + j * resizeOffset, i * resizeOffset, 0, resizeOffset, DEFAULT_THICKNESS, VERT);
+			lines.push_back(line);
 		}
 	}
-
-	for (int i = 0; i * 10 < rect.bottom; i++)
+	
+	for (int i = 0; i * resizeOffset < rect.bottom; i++)
 	{
-		for (int j = 0; j * 10 < rect.right; j++)
+		for (int j = 0; j * resizeOffset < rect.right; j++)
 		{
-			Line line = Line(0, 10, 0, 0, DEFAULT_THICKNESS, VERT);
-			line.multx = j;
-			line.multy = i;
-			insertAtEnd(head, line);
+			Line line = Line(j * resizeOffset, 10 + i * resizeOffset, resizeOffset, 0, DEFAULT_THICKNESS, HORZ);
+			lines.push_back(line);
 		}
-	}
-}
-
-void DeleteAllNodes(node * head)
-{
-	node * pointer = head->next;
-	node * temp;
-	while(pointer != nullptr)
-	{
-		temp = pointer->next;
-		delete[] pointer;
-		pointer = temp;
 	}
 }
 
@@ -107,54 +65,20 @@ VOID onPaint(HDC hdc)
 
 	Gdiplus::Graphics graphics(hdc);
 
-
-//	DeleteAllNodes(vertHead);
-//	DeleteAllNodes(horzHead);
-
 	Gdiplus::Pen p(Gdiplus::Color(255, 2550, 0), 3);
-
-	//Sort the nodes
-	for (node * curr = head; curr != nullptr; curr = curr->next)
-	{
-		Line l = curr->data;
-		if (l.type == VERT) {
-			insertAtEnd(vertHead, l);
-		}
-		else if (l.type == HORZ) {
-			insertAtEnd(horzHead, l);
-		}
-	}
-
 
 
 	//Paint all lines
-	for (node * curr = horzHead; curr != nullptr; curr = curr->next)
+	for (std::list<Line>::iterator it = lines.begin(); it != lines.end(); it++)
 	{
-		Line l = curr->data;
-		Gdiplus::Pen pen(getRandomColor(), l.thickness);
-		graphics.DrawLine(&pen, l.x + l.multx * resizeOffset, l.y + l.multy * resizeOffset, l.x + l.multx * resizeOffset, l.y + l.multy * resizeOffset);
-		graphics.DrawLine(&pen, l.x + l.multx * resizeOffset, l.y + l.multy * resizeOffset, l.x + l.width, l.y + l.height + resizeOffset);
+		Line l = *it;
+		Gdiplus::Pen pen(l.color, l.thickness);
+		graphics.DrawLine(&pen, l.x, l.y, l.x + l.width, l.y + l.height);
 	}
 
+
 	///////reference
-//
-//for (int i = 0; i * resizeOffset < rect.bottom; i++)
-//{
-//	for (int j = 0; j * resizeOffset < rect.right; j++)
-//	{
-//		Line line = Line(10 + j * resizeOffset, i * resizeOffset, 0, resizeOffset, DEFAULT_THICKNESS, HORZ);
-//		insertAtEnd(head, line);
-//	}
-//}
-//
-//for (int i = 0; i * resizeOffset < rect.bottom; i++)
-//{
-//	for (int j = 0; j * resizeOffset < rect.right; j++)
-//	{
-//		Line line = Line(j * resizeOffset, 10 + i * resizeOffset, resizeOffset, 0, DEFAULT_THICKNESS, VERT);
-//		insertAtEnd(head, line);
-//	}
-//}
+
 
 	//
 	//
@@ -193,10 +117,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	ULONG_PTR gdiplusToken;
 
 	GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
-	head = new node;
-	horzHead = new node;
-	vertHead = new node;
-
 
     // Initialize global strings
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
