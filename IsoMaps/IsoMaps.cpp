@@ -12,6 +12,8 @@
 #include "Line.h"
 
 #define MAX_LOADSTRING 100
+#define MIN_ZOOM 50
+#define MAX_ZOOM 500
 
 // Global Variables:
 HINSTANCE hInst;                                // current instance
@@ -20,16 +22,24 @@ WCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
 RECT rect;										// pointer to the size of the window
 HWND hWnd;										// current window
 int resizeOffset = 100;							//Changed when zooming
+bool outdated = false;
+
 
 std::list<Line> lines;
 
 void changeOffset(int offset)
 {
 	resizeOffset += offset;
-	if (resizeOffset < 10)
+	if (resizeOffset < MIN_ZOOM)
 	{
-		resizeOffset = 10;
+		resizeOffset = MIN_ZOOM;
 	}
+	if (resizeOffset > MAX_ZOOM)
+	{
+		resizeOffset = MAX_ZOOM;
+	}
+
+	outdated = true;
 }
 
 void addAllLines()
@@ -52,6 +62,7 @@ void addAllLines()
 			lines.push_back(line);
 		}
 	}
+	InvalidateRect(hWnd, NULL, true);
 }
 
 Gdiplus::Color getRandomColor()
@@ -62,11 +73,14 @@ Gdiplus::Color getRandomColor()
 VOID onPaint(HDC hdc)
 {
 	GetWindowRect(hWnd, &rect);
-
 	Gdiplus::Graphics graphics(hdc);
 
-	Gdiplus::Pen p(Gdiplus::Color(255, 2550, 0), 3);
-
+	if (outdated)
+	{
+		lines.clear();
+		addAllLines();//Refresh zoom size
+		outdated = false;
+	}
 
 	//Paint all lines
 	for (std::list<Line>::iterator it = lines.begin(); it != lines.end(); it++)
@@ -75,24 +89,6 @@ VOID onPaint(HDC hdc)
 		Gdiplus::Pen pen(l.color, l.thickness);
 		graphics.DrawLine(&pen, l.x, l.y, l.x + l.width, l.y + l.height);
 	}
-
-
-	///////reference
-
-
-	//
-	//
-	//
-	//for (int i = 0; i * offset < rect.bottom; i++)
-	//{
-	//	graphics.DrawLine(&pen, 0, i * offset, rect.right, i * offset);
-	//}
-	//for (int i = 0; i * offset < rect.right; i++)
-	//{
-	//	graphics.DrawLine(&pen, i * offset, 0, i * offset, rect.right);
-	//}
-
-	
 }
 
 
