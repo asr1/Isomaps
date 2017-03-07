@@ -20,7 +20,7 @@ Line::Line(int _x, int _y, int _width, int _height, int _thickness, LINE_TYPE ty
 
 void Line::init(int _x, int _y, int _width, int _height, Gdiplus::Color _color, int _thickness, LINE_TYPE _type)
 {
-	tpye = _type;
+	type = _type;
 	x = _x;
 	y = _y;
 	width = _width;

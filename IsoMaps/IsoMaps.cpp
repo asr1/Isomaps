@@ -7,6 +7,7 @@
 #include <gdiplus.h>
 #pragma comment (lib, "Gdiplus.lib")
 #include "IsoMaps.h"
+#include <ctime>
 #include "Line.h"
 
 #define MAX_LOADSTRING 100
@@ -27,6 +28,8 @@ struct node {
 };
 
 node * head;
+node * vertHead;
+node * horzHead;
 
 void insertAtEnd(node* &first, Line data) {
 	// create node
@@ -57,24 +60,110 @@ void changeOffset(int offset)
 
 void addAllLines()
 {
-	for (int i = 0; i * resizeOffset < rect.bottom; i++)
+
+	for (int i = 0; i  * 10 < rect.bottom; i++)
 	{
-		for (int j = 0; j * resizeOffset < rect.right; j++) 
+		for (int j = 0; j * 10 < rect.right; j++) 
 		{
-			Line line = Line(10 + j * resizeOffset, i * resizeOffset, 0, resizeOffset, DEFAULT_THICKNESS, HORZ);
+			Line line = Line(10, 0, 1, 1, DEFAULT_THICKNESS, HORZ);
+			line.multx = j;
+			line.multy = i;
 			insertAtEnd(head, line);
 		}
 	}
 
-	for (int i = 0; i * resizeOffset < rect.bottom; i++)
+	for (int i = 0; i * 10 < rect.bottom; i++)
 	{
-		for (int j = 0; j * resizeOffset < rect.right; j++)
+		for (int j = 0; j * 10 < rect.right; j++)
 		{
-			Line line = Line(j * resizeOffset, 10 + i * resizeOffset, resizeOffset, 0, DEFAULT_THICKNESS, VERT);
+			Line line = Line(0, 10, 0, 0, DEFAULT_THICKNESS, VERT);
+			line.multx = j;
+			line.multy = i;
 			insertAtEnd(head, line);
 		}
 	}
+}
 
+void DeleteAllNodes(node * head)
+{
+	node * pointer = head->next;
+	node * temp;
+	while(pointer != nullptr)
+	{
+		temp = pointer->next;
+		delete[] pointer;
+		pointer = temp;
+	}
+}
+
+Gdiplus::Color getRandomColor()
+{
+	return Gdiplus::Color(rand() % 255 + 1, rand() % 255 + 1, rand() % 255 + 1);
+}
+
+VOID onPaint(HDC hdc)
+{
+	GetWindowRect(hWnd, &rect);
+
+	Gdiplus::Graphics graphics(hdc);
+
+
+//	DeleteAllNodes(vertHead);
+//	DeleteAllNodes(horzHead);
+
+	Gdiplus::Pen p(Gdiplus::Color(255, 2550, 0), 3);
+
+	//Sort the nodes
+	for (node * curr = head; curr != nullptr; curr = curr->next)
+	{
+		Line l = curr->data;
+		if (l.type == VERT) {
+			insertAtEnd(vertHead, l);
+		}
+		else if (l.type == HORZ) {
+			insertAtEnd(horzHead, l);
+		}
+	}
+
+	if (horzHead->next != nullptr) {
+		Line l = horzHead->next->next->data;
+		Gdiplus::Pen pen(getRandomColor(), l.thickness);
+		l.x = l.x + l.multx * resizeOffset;
+		l.y = l.y + l.multy * resizeOffset;
+		l.width = l.x + l.multx * resizeOffset;
+		l.height = l.y + l.multy * resizeOffset;
+		graphics.DrawLine(&pen, l.x, l.y, l.width, l.height);
+	}
+
+
+	//Paint all lines
+	//for (node * curr = horzHead; curr != nullptr; curr = curr->next)
+	//{
+	//	Line l = curr->data;
+	//	Gdiplus::Pen pen(getRandomColor(), l.thickness);
+	//	graphics.DrawLine(&pen, l.x + l.multx * resizeOffset, l.y + l.multy * resizeOffset, l.x + l.multx * resizeOffset, l.y + l.multy * resizeOffset);
+	//	//graphics.DrawLine(&pen, l.x + l.multx * resizeOffset, l.y + l.multy * resizeOffset, l.x + l.width, l.y + l.height + resizeOffset);
+	//}
+
+	///////reference
+//
+//for (int i = 0; i * resizeOffset < rect.bottom; i++)
+//{
+//	for (int j = 0; j * resizeOffset < rect.right; j++)
+//	{
+//		Line line = Line(10 + j * resizeOffset, i * resizeOffset, 0, resizeOffset, DEFAULT_THICKNESS, HORZ);
+//		insertAtEnd(head, line);
+//	}
+//}
+//
+//for (int i = 0; i * resizeOffset < rect.bottom; i++)
+//{
+//	for (int j = 0; j * resizeOffset < rect.right; j++)
+//	{
+//		Line line = Line(j * resizeOffset, 10 + i * resizeOffset, resizeOffset, 0, DEFAULT_THICKNESS, VERT);
+//		insertAtEnd(head, line);
+//	}
+//}
 
 	//
 	//
@@ -88,22 +177,6 @@ void addAllLines()
 	//	graphics.DrawLine(&pen, i * offset, 0, i * offset, rect.right);
 	//}
 
-}
-
-VOID onPaint(HDC hdc)
-{
-	GetWindowRect(hWnd, &rect);
-	int offset = resizeOffset;
-
-	Gdiplus::Graphics graphics(hdc);
-
-	//Paint all lines
-	for (node * curr = head; curr != nullptr; curr = curr->next)
-	{
-		Line l = curr->data;
-		Gdiplus::Pen pen(l.color, l.thickness);
-		graphics.DrawLine(&pen, l.x, l.y, l.x + l.width, l.y + l.height);
-	}
 	
 }
 
@@ -123,11 +196,15 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
+	srand((int)time(0));
+
 	Gdiplus::GdiplusStartupInput gdiplusStartupInput;
 	ULONG_PTR gdiplusToken;
 
 	GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 	head = new node;
+	horzHead = new node;
+	vertHead = new node;
 
 
     // Initialize global strings

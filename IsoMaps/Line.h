@@ -19,7 +19,8 @@ public:
 	int width, height, thickness, x, y;
 	bool isSelected;
 	Gdiplus::Color color;
-	LINE_TYPE tpye;
+	LINE_TYPE type;
+	int multx, multy;
 
 	Line();
 	Line(int _x, int _y, int _width, int _height, int _thickness = DEFAULT_THICKNESS, LINE_TYPE type = NONE);
