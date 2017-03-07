@@ -1,6 +1,6 @@
 ﻿  Line.cpp
   IsoMaps.cpp
-c:\users\alex\documents\programming\isomaps\isomaps\isomaps.cpp(59): warning C4244: 'argument': conversion from 'int' to 'Gdiplus::REAL', possible loss of data
+c:\users\alex\documents\programming\isomaps\isomaps\isomaps.cpp(104): warning C4244: 'argument': conversion from 'int' to 'Gdiplus::REAL', possible loss of data
   Generating Code...
   IsoMaps.vcxproj -> C:\Users\Alex\Documents\Programming\IsoMaps\Debug\IsoMaps.exe
   IsoMaps.vcxproj -> C:\Users\Alex\Documents\Programming\IsoMaps\Debug\IsoMaps.pdb (Partial PDB)

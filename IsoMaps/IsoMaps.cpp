@@ -22,17 +22,28 @@ int resizeOffset = 100;							//Changed when zooming
 struct node {
 	Line data;
 	node * next;
+	node(const Line & dat, node * n = 0) : data(dat), next(n){}
+	node(node * n = 0) : next(n) {}
 };
 
 node * head;
 
-void addToList(node * head, Line data)
-{
-	node * temp = head;
-	while (temp && temp->next) {
-		temp = temp->next;
-	}
+void insertAtEnd(node* &first, Line data) {
+	// create node
+	node* temp = new node;
 	temp->data = data;
+	temp->next = NULL;
+
+	if (!first) { // empty list becomes the new node
+		first = temp;
+		return;
+	}
+	else { // find last and link the new node
+		node* last = first;
+		while (last->next) last = last->next;
+		last->next = temp;
+	}
+	InvalidateRect(hWnd, NULL, true);
 }
 
 void changeOffset(int offset)
@@ -44,22 +55,25 @@ void changeOffset(int offset)
 	}
 }
 
-VOID onPaint(HDC hdc)
+void addAllLines()
 {
-	GetWindowRect(hWnd, &rect);
-	int offset = resizeOffset;
-
-	Gdiplus::Graphics graphics(hdc);
-
-	//Paint all lines
-	node * temp = head;
-	while (temp && temp->next)
+	for (int i = 0; i * resizeOffset < rect.bottom; i++)
 	{
-		Line l = (Line)temp->data;
-		Gdiplus::Pen pen(l.color, l.thickness);
-		graphics.DrawLine(&pen, l.x, l.y, l.x + l.width, l.y + l.height);
+		for (int j = 0; j * resizeOffset < rect.right; j++) 
+		{
+			Line line = Line(10 + j * resizeOffset, i * resizeOffset, 0, resizeOffset, DEFAULT_THICKNESS, HORZ);
+			insertAtEnd(head, line);
+		}
 	}
 
+	for (int i = 0; i * resizeOffset < rect.bottom; i++)
+	{
+		for (int j = 0; j * resizeOffset < rect.right; j++)
+		{
+			Line line = Line(j * resizeOffset, 10 + i * resizeOffset, resizeOffset, 0, DEFAULT_THICKNESS, VERT);
+			insertAtEnd(head, line);
+		}
+	}
 
 
 	//
@@ -73,9 +87,24 @@ VOID onPaint(HDC hdc)
 	//{
 	//	graphics.DrawLine(&pen, i * offset, 0, i * offset, rect.right);
 	//}
+
+}
+
+VOID onPaint(HDC hdc)
+{
+	GetWindowRect(hWnd, &rect);
+	int offset = resizeOffset;
+
+	Gdiplus::Graphics graphics(hdc);
+
+	//Paint all lines
+	for (node * curr = head; curr != nullptr; curr = curr->next)
+	{
+		Line l = curr->data;
+		Gdiplus::Pen pen(l.color, l.thickness);
+		graphics.DrawLine(&pen, l.x, l.y, l.x + l.width, l.y + l.height);
+	}
 	
-
-
 }
 
 
@@ -116,8 +145,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     MSG msg;
 
-	Line line = Line(10, 10, 100, 100);
-	addToList(head, line);
+	addAllLines();
 
 
     // Main message loop:
