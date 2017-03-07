@@ -65,7 +65,7 @@ void addAllLines()
 	{
 		for (int j = 0; j * 10 < rect.right; j++) 
 		{
-			Line line = Line(10, 0, 1, 1, DEFAULT_THICKNESS, HORZ);
+			Line line = Line(10, 0, 0, 0, DEFAULT_THICKNESS, HORZ);
 			line.multx = j;
 			line.multy = i;
 			insertAtEnd(head, line);
@@ -125,25 +125,16 @@ VOID onPaint(HDC hdc)
 		}
 	}
 
-	if (horzHead->next != nullptr) {
-		Line l = horzHead->next->next->data;
-		Gdiplus::Pen pen(getRandomColor(), l.thickness);
-		l.x = l.x + l.multx * resizeOffset;
-		l.y = l.y + l.multy * resizeOffset;
-		l.width = l.x + l.multx * resizeOffset;
-		l.height = l.y + l.multy * resizeOffset;
-		graphics.DrawLine(&pen, l.x, l.y, l.width, l.height);
-	}
 
 
 	//Paint all lines
-	//for (node * curr = horzHead; curr != nullptr; curr = curr->next)
-	//{
-	//	Line l = curr->data;
-	//	Gdiplus::Pen pen(getRandomColor(), l.thickness);
-	//	graphics.DrawLine(&pen, l.x + l.multx * resizeOffset, l.y + l.multy * resizeOffset, l.x + l.multx * resizeOffset, l.y + l.multy * resizeOffset);
-	//	//graphics.DrawLine(&pen, l.x + l.multx * resizeOffset, l.y + l.multy * resizeOffset, l.x + l.width, l.y + l.height + resizeOffset);
-	//}
+	for (node * curr = horzHead; curr != nullptr; curr = curr->next)
+	{
+		Line l = curr->data;
+		Gdiplus::Pen pen(getRandomColor(), l.thickness);
+		graphics.DrawLine(&pen, l.x + l.multx * resizeOffset, l.y + l.multy * resizeOffset, l.x + l.multx * resizeOffset, l.y + l.multy * resizeOffset);
+		graphics.DrawLine(&pen, l.x + l.multx * resizeOffset, l.y + l.multy * resizeOffset, l.x + l.width, l.y + l.height + resizeOffset);
+	}
 
 	///////reference
 //
